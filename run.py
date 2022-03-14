@@ -1,4 +1,4 @@
-from loxscript.__main__ import main
+from lox.__main__ import main
 
 if __name__ == "__main__":
     main()

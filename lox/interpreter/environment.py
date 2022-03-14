@@ -1,6 +1,6 @@
 import typing as t
 
-from loxscript.errors import RuntimeException
+from ..errors import RuntimeException
 from ..lexer.token import Token
 
 
@@ -14,7 +14,7 @@ class Environment:
     
     def assign(self, name: "Token", value: t.Any):
         if name.lexeme in self._variables:
-            self._variables[name] = value
+            self._variables[name.lexeme] = value
             return
         
         if self._enclosing is not None:

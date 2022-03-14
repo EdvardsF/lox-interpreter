@@ -70,4 +70,5 @@ define_ast(output_dir, "StmtVisitor", "Stmt",
     "Expression_stmt | expression: \"Expr\"",
     "If_stmt | condition: \"Expr\", then_branch: \"Stmt\", else_branch: \"Stmt\"",
     "Print_stmt | expression: \"Expr\"",
-    "Var_stmt | name: \"Token\", initializer: \"Expr\""])
+    "Var_stmt | name: \"Token\", initializer: \"Expr\"",
+    "While_stmt | condition: \"Expr\", body: \"Stmt\""])

@@ -1,6 +1,8 @@
 expression → assignment ;
 assignment → IDENTIFIER "=" assignment
-| equality ;
+| logic_or ;
+logic_or → logic_and ( "or" logic_and )* ;
+logic_and → equality ( "and" equality )* ;
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term → factor ( ( "-" | "+" ) factor )* ;
@@ -13,8 +15,13 @@ primary → NUMBER | STRING | "true" | "false" | "nil"
 program → declaration* EOF ;
 declaration → varDecl | statement ;
 statement → exprStmt
+| ifStmt
 | printStmt
+| whileStmt
 | block ;
 exprStmt → expression ";" ;
+ifStmt → "if" "(" expression ")" statement
+( "else" statement )?;
+whileStmt → "while" "(" expression ")" statement ;
 printStmt → "print" expression ";" ;
 block → "{" declaration* "}"

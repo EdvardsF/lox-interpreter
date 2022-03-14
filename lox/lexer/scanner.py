@@ -2,7 +2,7 @@ import typing as t
 
 from .token import Token
 from .token_type import TokenType
-from loxscript.handle_errors import report
+from ..handle_errors import report
 
 class Scanner:
     def __init__(self, source: str):

@@ -42,6 +42,8 @@ class Parser:
             return self._if_statement()
         elif self._match(TokenType.PRINT):
             return self._print_statement()
+        elif self._match(TokenType.WHILE):
+            return self._while_statement()
         elif self._match(TokenType.LEFT_PAREN):
             return Block_stmt(self._block())
         else:
@@ -65,6 +67,14 @@ class Parser:
         # TODO in case of  if (a==2) print 2 else print nil; print the carret in the correct position
         self._consume(TokenType.SEMICOLON, "Expect ';' after a value.")
         return Print_stmt(value)
+    
+    def _while_statement(self):
+        self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'while'.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after condition.")
+        body = self._statement()
+
+        return While_stmt(condition, body)
     
     def _block(self):
         statements = []
@@ -117,7 +127,7 @@ class Parser:
             expr = Logical_expr(expr, operator, right)
 
         return expr 
-          
+
     def _equality(self):
         expr = self._comparison()
 

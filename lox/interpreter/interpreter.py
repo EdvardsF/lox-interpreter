@@ -1,4 +1,3 @@
-from turtle import st
 import typing as t
 
 from ..lexer.token_type import TokenType
@@ -48,6 +47,11 @@ class Interpreter(BaseVisitor, StmtVisitor):
         
         self._environment.define(statement.name.lexeme, value)
     
+    def visit_while_stmt(self, stmt: "While_stmt"):
+        while self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
+        return None
+    
     def visit_variable_expr(self, expr: "Expr"):
         return self._environment.get(expr.name)
     
@@ -56,8 +60,6 @@ class Interpreter(BaseVisitor, StmtVisitor):
     
     def visit_expression_stmt(self, stmt: "Expression_stmt"):
         value = self._evaluate(stmt.expression)
-        # TODO here
-        print(value)
     
     def visit_if_stmt(self, stmt: "If_stmt"):
         if self._is_truthy(self._evaluate(stmt.condition)):
@@ -73,6 +75,16 @@ class Interpreter(BaseVisitor, StmtVisitor):
 
     def visit_literal_expr(self, expr: "Literal_expr"):
         return expr.value
+    
+    def visit_logical_expr(self, expr: "Logical_expr"):
+        left = self._evaluate(expr.left)
+
+        if expr.operator.type == TokenType.OR:
+            if self._is_truthy(left): return left
+        else:
+            if not self._is_truthy(left): return left
+        
+        return self._evaluate(expr.right)
     
     def visit_grouping_expr(self, expr: "Grouping_expr"):
         return self._evaluate(expr.expression)
