@@ -1,3 +1,4 @@
+from ast import While
 import typing as t
 
 from ..helpers import get_line_given_pos
@@ -34,11 +35,13 @@ class Parser:
         initializer = None
         if self._match(TokenType.EQUAL):
             initializer = self._expression()
-        self._consume(TokenType.SEMICOLON, "Expect ';' after a vaariable decleration.")
+        self._consume(TokenType.SEMICOLON, "Expect ';' after a variable decleration.")
         return Var_stmt(name, initializer)
     
     def _statement(self):
-        if self._match(TokenType.IF):
+        if self._match(TokenType.FOR):
+            return self._for_statement()
+        elif self._match(TokenType.IF):
             return self._if_statement()
         elif self._match(TokenType.PRINT):
             return self._print_statement()
@@ -48,6 +51,45 @@ class Parser:
             return Block_stmt(self._block())
         else:
             return self._expression_statement()
+    
+    def _for_statement(self):
+        self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'for'.")
+
+        initializer = None
+        if self._match(TokenType.SEMICOLON):
+            pass
+        elif self._match(TokenType.VAR):
+            initializer = self._var_declaration()
+        else:
+            initializer = self._expression_statement()
+        
+        condition = None
+        if not self._check(TokenType.SEMICOLON):
+            condition = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
+
+        increment = None
+        if not self._check(TokenType.RIGHT_BRACE):
+            increment = self._expression()
+        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after for clauses.")
+
+        body = self._statement()
+
+        if increment is not None:
+            body = Block_stmt([
+                body,
+                Expression_stmt(increment)
+            ])
+        
+        if condition is None:
+            condition = Literal_expr(True)
+        
+        body = While_stmt(condition, body)
+
+        if initializer is not None:
+            body = Block_stmt([initializer, body])
+        
+        return body
     
     def _if_statement(self):
         self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'if'.")

@@ -15,6 +15,7 @@ primary → NUMBER | STRING | "true" | "false" | "nil"
 program → declaration* EOF ;
 declaration → varDecl | statement ;
 statement → exprStmt
+| forStmt
 | ifStmt
 | printStmt
 | whileStmt
