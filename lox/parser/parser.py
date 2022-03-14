@@ -44,7 +44,8 @@ class Parser:
             return self._print_statement()
         elif self._match(TokenType.LEFT_PAREN):
             return Block_stmt(self._block())
-        return self._expression_statement()
+        else:
+            return self._expression_statement()
     
     def _if_statement(self):
         self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'if'.")
@@ -83,7 +84,7 @@ class Parser:
         return self._assignment()
     
     def _assignment(self):
-        expr = self._equality()
+        expr = self._or()
 
         if self._match(TokenType.EQUAL):
             equals = self._previous()
@@ -97,6 +98,26 @@ class Parser:
 
         return expr
     
+    def _or(self):
+        expr = self._and()
+
+        while self._match(TokenType.OR):
+            operator = self._previous()
+            right = self._and()
+            expr = Logical_expr(expr, operator, right) 
+
+        return expr
+
+    def _and(self):
+        expr = self._equality()
+
+        while self._match(TokenType.AND):
+            operator = self._previous()
+            right = self._equality()
+            expr = Logical_expr(expr, operator, right)
+
+        return expr 
+          
     def _equality(self):
         expr = self._comparison()
 

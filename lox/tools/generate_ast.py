@@ -61,6 +61,7 @@ define_ast(output_dir, "BaseVisitor", "Expr",
     "Binary_expr | left: \"Expr\", operator: \"Token\", right: \"Expr\"",
     "Grouping_expr | expression: \"Expr\"",
     "Literal_expr | value: t.Any",
+    "Logical_expr | left: \"Expr\", operator: \"Token\", right: \"Expr\"",
     "Unary_expr | operator: \"Token\", right: \"Expr\"",
     "Variable_expr | name: \"Token\""])
 
