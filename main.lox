@@ -1,6 +1,11 @@
-fun hello(name, surname) {
-    var to_print = "Hello, " + name + " " + surname + "!";
-    print to_print;
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        i = i + 1;
+        print i;
+    }
+    return count;
 }
-
-hello("John", "Doe");
+var counter = makeCounter();
+counter(); // "1".
+counter(); // "2".

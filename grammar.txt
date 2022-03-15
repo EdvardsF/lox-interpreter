@@ -25,14 +25,16 @@ statement → exprStmt
         | forStmt
         | ifStmt
         | printStmt
+        | returnStmt
         | whileStmt
         | block ;
 exprStmt → expression ";" ;
 forStmt → "for" "(" ( varDecl | exprStmt | ";")
-expression? ";"
-expression? ")" statement ;
+        expression? ";"
+        expression? ")" statement ;
 ifStmt → "if" "(" expression ")" statement
-        ( "else" statement )?;
+        ( "else" statement )? ;
+returnStmt → "return" expression? ";" ;
 whileStmt → "while" "(" expression ")" statement ;
 printStmt → "print" expression ";" ;
 block → "{" declaration* "}"

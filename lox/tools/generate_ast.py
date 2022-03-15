@@ -72,5 +72,6 @@ define_ast(output_dir, "StmtVisitor", "Stmt",
     "Function_stmt | name: \"Token\", params: t.List[\"Token\"], body: t.List[\"Stmt\"]",
     "If_stmt | condition: \"Expr\", then_branch: \"Stmt\", else_branch: \"Stmt\"",
     "Print_stmt | expression: \"Expr\"",
+    "Return_stmt | keyword: \"Token\", value: \"Expr\"",
     "Var_stmt | name: \"Token\", initializer: \"Expr\"",
     "While_stmt | condition: \"Expr\", body: \"Stmt\""])
