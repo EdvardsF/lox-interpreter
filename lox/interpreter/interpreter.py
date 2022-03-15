@@ -7,11 +7,15 @@ from ..parser.stmt import *
 from ..errors import RuntimeException
 from ..handle_errors import runtime_error
 from .environment import Environment
+from .callable import Callable, Function
+from .natives import Clock
 
 
 class Interpreter(BaseVisitor, StmtVisitor):
     def __init__(self):
-        self._environment = Environment()
+        self.globals = Environment()
+        self._environment = self.globals
+        self.globals.define("clock", Clock())
 
     def interpret(self, statements: t.List["Stmt"]):
         try:
@@ -60,6 +64,10 @@ class Interpreter(BaseVisitor, StmtVisitor):
     
     def visit_expression_stmt(self, stmt: "Expression_stmt"):
         value = self._evaluate(stmt.expression)
+    
+    def visit_function_stmt(self, stmt: "Function_stmt"):
+        function = Function(stmt)
+        self._environment.define(stmt.name.lexeme, function)
     
     def visit_if_stmt(self, stmt: "If_stmt"):
         if self._is_truthy(self._evaluate(stmt.condition)):
@@ -148,6 +156,22 @@ class Interpreter(BaseVisitor, StmtVisitor):
             return not self._is_equal(left, right)
         
         return None
+    
+    def visit_call_expr(self, expr: "Call_expr"):
+        callee = self._evaluate(expr.callee)
+        arguments = []
+        for argument in expr.arguments:
+            arguments.append(self._evaluate(argument))
+        
+        if not isinstance(callee, Callable):
+            raise RuntimeException(expr.paren, "Object is not callable.")
+        
+        func = callee
+
+        if len(arguments) != func.arity():
+            raise RuntimeException(expr.paren, f"Expected {func.arity()} arguments, but got {len(arguments)}.")
+
+        return func.call(self, arguments)
     
     def _evaluate(self, expr: "Expr"):
         return expr.accept(self)

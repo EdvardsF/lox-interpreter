@@ -4,7 +4,7 @@ from ..lexer.token import Token, TokenType
 
 class AstPrinter():
     def print(self, expr: Expr):
-        return expr.accept(self)
+        print(expr.accept(self))
     
     def visit_binary_expr(self, expr: Binary_expr):
         return self._parenthesize(expr.operator.lexeme, expr.left, expr.right)
@@ -17,6 +17,9 @@ class AstPrinter():
     
     def visit_grouping_expr(self, expr: Grouping_expr):
         return self._parenthesize("group", expr.expression)
+    
+    def visit_variable_expr(self, expr: Variable_expr):
+        return self._parenthesize(expr.name.lexeme)
     
     def _parenthesize(self, name: str, *args: "Expr"):
         parenthesized = "("

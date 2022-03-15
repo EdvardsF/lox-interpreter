@@ -1,4 +1,3 @@
-from ast import While
 import typing as t
 
 from ..helpers import get_line_given_pos
@@ -23,11 +22,28 @@ class Parser:
     
     def _declaration(self):
         try:
-            if self._match(TokenType.VAR): return self._var_declaration()
+            if self._match(TokenType.FUNCTION): return self._function("function")
+            elif self._match(TokenType.VAR): return self._var_declaration()
             return self._statement()
         except ParseError as e:
             self._synchronize()
             return None
+        
+    def _function(self, kind: str):
+        name = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
+        parameters = []
+        self._consume(TokenType.LEFT_BRACE, f"Expect '(' after {kind} name.")
+        if not self._check(TokenType.RIGHT_BRACE):
+            parameters.append(self._consume(TokenType.IDENTIFIER, "Expect parameter name."))
+            while self._match(TokenType.COMMA):
+                if len(parameters) >= 255:
+                    self._error(self._peek(), "Can't have more than 255 arguments.")
+                parameters.append(self._consume(TokenType.IDENTIFIER, "Expect parameter name."))
+        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after parameters.")
+        self._consume(TokenType.LEFT_PAREN, f"Expect '{{' before {kind} body.")
+        # self._block assumes '{' is already consumed
+        statements = self._block()
+        return Function_stmt(name, parameters, statements)
     
     def _var_declaration(self):
         name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
@@ -106,7 +122,6 @@ class Parser:
     
     def _print_statement(self):
         value = self._expression()
-        # TODO in case of  if (a==2) print 2 else print nil; print the carret in the correct position
         self._consume(TokenType.SEMICOLON, "Expect ';' after a value.")
         return Print_stmt(value)
     
@@ -216,7 +231,30 @@ class Parser:
             right = self._unary()
             return Unary_expr(operator, right)
         
-        return self._primary()
+        return self._call()
+    
+    def _call(self):
+        expr = self._primary()
+
+        while True:
+            if (self._match(TokenType.LEFT_BRACE)):
+                expr = self._finish_call(expr)
+            else:
+                break
+        
+        return expr
+    
+    def _finish_call(self, callee: "Expr"):
+        arguments = []
+        if not self._check(TokenType.RIGHT_BRACE):
+            arguments.append(self._expression())
+            while self._match(TokenType.COMMA):
+                if len(arguments) >= 255:
+                    self._error(self._peek(), "Can't have more than 255 arguments.")
+                arguments.append(self._expression())
+        paren = self._consume(TokenType.RIGHT_BRACE, "Expected ')' after arguments.")
+
+        return Call_expr(callee, paren, arguments)
     
     def _primary(self):
         if self._match(TokenType.FALSE): return Literal_expr(False)

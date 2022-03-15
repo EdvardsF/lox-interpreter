@@ -1,3 +1,6 @@
-for (var a = 0; a < 10; a = a + 1) {
-    print a;
+fun hello(name, surname) {
+    var to_print = "Hello, " + name + " " + surname + "!";
+    print to_print;
 }
+
+hello("John", "Doe");
