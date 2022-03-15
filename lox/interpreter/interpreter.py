@@ -115,9 +115,9 @@ class Interpreter(BaseVisitor, StmtVisitor):
 
         if expr.operator.type == TokenType.PLUS:
             if isinstance(right, float) and isinstance(left, float):
-                return float(right) + float(left)
+                return float(left) + float(right)
             elif isinstance(right, str) and isinstance(left, str):
-                return str(right) + str(left)
+                return str(left) + str(right)
             else:
                 raise RuntimeException(expr.operator, "Operands must be two numbers or two strings")
         
