@@ -22,6 +22,7 @@ def run(code):
 
     resolver = Resolver(interpreter)
     resolver.resolve(statements)
+    if errors["errors"]: exit(65)
 
     interpreter.interpret(statements)
     if errors["runtime_errors"]: exit(70)
@@ -32,7 +33,7 @@ def runFile(path: str):
         code = Path(path).read_text()
     except FileNotFoundError:
         print(f"File '{path}' doesn't exist.")
-        sys.exit(1)
+        exit(1)
     
     run(code)
     global errors

@@ -1,16 +1,22 @@
 import typing as t
 from functools import singledispatchmethod
+from enum import Enum, auto
 
 from ..parser.expr import *
 from ..parser.stmt import *
 from ..handle_errors import report
 
 
+class FunctionType(Enum):
+    FUNCTION = auto()
+    NONE = auto()
+
 
 class Resolver(BaseVisitor, StmtVisitor):
     def __init__(self, interpreter):
         self._interpreter = interpreter
         self._scopes = []
+        self._current_function = FunctionType.NONE
     
     def visit_var_stmt(self, stmt: "Var_stmt"):
         self._declare(stmt.name)
@@ -35,6 +41,8 @@ class Resolver(BaseVisitor, StmtVisitor):
         if not self._scopes: return
 
         scope = self._scopes[-1]
+        if name.lexeme in self._scopes.keys():
+            report(name.line, name.lexeme, 0, "Already a variable with this name in this scope.")
         scope[name.lexeme] = False
     
     def _define(self, name: "Token"):
@@ -57,16 +65,19 @@ class Resolver(BaseVisitor, StmtVisitor):
         self._declare(stmt.name)
         self._define(stmt.name)
 
-        self._resolve_function(stmt)
+        self._resolve_function(stmt, FunctionType.FUNCTION)
         return None
     
-    def _resolve_function(self, function: Function_stmt):
+    def _resolve_function(self, function: Function_stmt, type: FunctionType):
+        enclosing_function = self._current_function
+        self._current_function = type
         self._begin_scope()
         for param in function.params:
             self._declare(param)
             self._define(param)
         self.resolve(function.body)
         self._end_scope()
+        self._current_function = enclosing_function
     
     def visit_expression_stmt(self, stmt: "Expression_stmt"):
         self.resolve(stmt.expression)
@@ -84,6 +95,8 @@ class Resolver(BaseVisitor, StmtVisitor):
         return None
     
     def visit_return_stmt(self, stmt: "Return_stmt"):
+        if self._current_function == FunctionType.NONE:
+            report(0, "return", 0, "Can't return from top-level code.")
         if stmt.value is not None:
             self.resolve(stmt.value)
         return None
