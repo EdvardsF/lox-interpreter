@@ -6,6 +6,7 @@ from .lexer.scanner import Scanner
 from .handle_errors import errors
 from .parser.parser import Parser
 from .interpreter.interpreter import Interpreter
+from .interpreter.resolver import Resolver
 
 interpreter = Interpreter()
 
@@ -18,6 +19,9 @@ def run(code):
     parser = Parser(tokens, code)
     statements = parser.parse()
     if errors["errors"]: exit(65)
+
+    resolver = Resolver(interpreter)
+    resolver.resolve(statements)
 
     interpreter.interpret(statements)
     if errors["runtime_errors"]: exit(70)

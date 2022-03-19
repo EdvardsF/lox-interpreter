@@ -14,6 +14,7 @@ from .natives import Clock
 class Interpreter(BaseVisitor, StmtVisitor):
     def __init__(self):
         self.globals = Environment()
+        self._locals = {}
         self._environment = self.globals
         self.globals.define("clock", Clock())
 
@@ -23,6 +24,9 @@ class Interpreter(BaseVisitor, StmtVisitor):
                 self._execute(statement)
         except RuntimeException as e:
             runtime_error(e)
+    
+    def resolve(self, expr: Expr, depth: int):
+        self._locals[expr] = depth
         
     def visit_block_stmt(self, stmt: "Block_stmt"):
         self._execute_block(stmt.statements, Environment(self._environment))
@@ -41,7 +45,10 @@ class Interpreter(BaseVisitor, StmtVisitor):
     
     def visit_assign_expr(self, expr: "Assign_expr"):
         value = self._evaluate(expr.value)
-        self._environment.assign(expr.name, value)
+        if expr in self._locals.keys():
+            self._environment.assign_at(self._locals[expr], expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
         return value
         
     def visit_var_stmt(self, statement: "Stmt"):
@@ -57,7 +64,13 @@ class Interpreter(BaseVisitor, StmtVisitor):
         return None
     
     def visit_variable_expr(self, expr: "Expr"):
-        return self._environment.get(expr.name)
+        return self._look_up_variable(expr.name, expr)
+    
+    def _look_up_variable(self, name: Token, expr: Expr):
+        if expr in self._locals.keys():
+            return self._environment.get_at(self._locals[expr], name.lexeme)
+        else:
+            return self.globals.get(name)
     
     def _execute(self, statement: "Stmt"):
         return statement.accept(self)
