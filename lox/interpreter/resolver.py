@@ -1,10 +1,11 @@
+from ast import parse
 import typing as t
 from functools import singledispatchmethod
 from enum import Enum, auto
 
 from ..parser.expr import *
 from ..parser.stmt import *
-from ..handle_errors import report
+from ..handle_errors import parse_error, error
 
 
 class FunctionType(Enum):
@@ -32,7 +33,7 @@ class Resolver(BaseVisitor, StmtVisitor):
     
     def visit_variable_expr(self, expr: Variable_expr):
         if self._scopes and self._scopes[-1].get(expr.name.lexeme) is False:
-            report(expr.name.line, expr.name.lexeme, 0, "Can't read local varialbe in its owm initializer.")
+            parse_error(expr.name, "Can't read local varialbe in its owm initializer.")
         
         self._resolve_local(expr, expr.name)
         return None
@@ -42,7 +43,7 @@ class Resolver(BaseVisitor, StmtVisitor):
 
         scope = self._scopes[-1]
         if name.lexeme in self._scopes.keys():
-            report(name.line, name.lexeme, 0, "Already a variable with this name in this scope.")
+            parse_error(name, "Already a variable with this name in this scope.")
         scope[name.lexeme] = False
     
     def _define(self, name: "Token"):
@@ -96,7 +97,7 @@ class Resolver(BaseVisitor, StmtVisitor):
     
     def visit_return_stmt(self, stmt: "Return_stmt"):
         if self._current_function == FunctionType.NONE:
-            report(0, "return", 0, "Can't return from top-level code.")
+            parse_error(stmt.keyword, "Can't return from top-level code.")
         if stmt.value is not None:
             self.resolve(stmt.value)
         return None

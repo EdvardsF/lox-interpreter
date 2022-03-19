@@ -1,7 +1,6 @@
 import typing as t
 
-from ..helpers import get_line_given_pos
-from ..handle_errors import report
+from ..handle_errors import parse_error
 from ..errors import ParseError
 from ..lexer.token import Token, TokenType
 from .expr import *
@@ -288,10 +287,8 @@ class Parser:
         if self._check(token_type): return self._advance()
         raise self._error(self._peek(), message)
 
-    def _error(self, token: Token, message, error_pos: t.Optional[int] = -1):
-        line_str = get_line_given_pos(self._source, token.offset)
-        if error_pos == -1: error_pos = len(line_str)
-        report(token.line, line_str, error_pos, message)
+    def _error(self, token: Token, message):
+        parse_error(token, message)
         return ParseError()
         
     def _match(self, *args: TokenType):

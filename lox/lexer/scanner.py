@@ -2,7 +2,7 @@ import typing as t
 
 from .token import Token
 from .token_type import TokenType
-from ..handle_errors import report
+from ..handle_errors import error
 
 class Scanner:
     def __init__(self, source: str):
@@ -65,7 +65,7 @@ class Scanner:
             line_str = self._source.splitlines()[self._line - 1]
             lines_len = len("".join(self._source.splitlines()[:self._line - 1]))
             position = self._current - (lines_len + self._line)
-            report(self._line, line_str, position, f"Illegal character {char}.")
+            error(self._line, f"Illegal character {char}.")
         
     def _handle_string(self, start_delimiter: str):
         while self._peek() != start_delimiter:

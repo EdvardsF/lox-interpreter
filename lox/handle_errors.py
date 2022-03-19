@@ -1,22 +1,40 @@
 import sys
 
 from .errors import RuntimeException
+from .lexer.token import Token
+from .lexer.token_type import TokenType
 
-errors = {"errors": False, "runtime_errors": False}
+_errors = {"errors": False, "runtime_errors": False}
 
-def report(line: int, line_str: str, position: int, message: str):
-    global _errors
-    errors["errors"] = True
+def error(line: int, error_message: str):
+    report(line, "", error_message)
 
-    sys.stderr.write(f"\nError: {message}")
-    sys.stderr.write(f"\n\n{line} | {line_str}\n")
-    sys.stderr.write(" " * (len(str(line)) + 3) + " " * position + "^\n")
+def report(line: int, where: str, message: str):
+    sys.stderr.write(f"[line {line}] Error{where}: {message}\n")
+    _errors["errors"] = True
 
-# TODO runtime_error should show whole line not single token
 def runtime_error(runtime_exception: RuntimeException):
-    global _errors
-    errors["runtime_errors"] = True
+    sys.stderr.write(
+        str(runtime_exception) + f"\n[line {runtime_exception.token.line}]\n"
+    )
+    _errors["runtime_errors"] = True
 
-    sys.stderr.write(f"\nRuntimeError: {runtime_exception.message}")
-    sys.stderr.write(f"\n\n{runtime_exception.token.line} | {runtime_exception.token.lexeme}\n")
-    sys.stderr.write(" " * (len(str(runtime_exception.token.lexeme)) + 3)  + "^\n")
+def parse_error(token: Token, message: str):
+    _errors["errors"] = True
+    if token.type == TokenType.EOF:
+        report(token.line, "  at end", message)
+    else:
+        report(token.line, f" at '{token.lexeme}'", message)
+
+def has_error():
+    return _errors["errors"]
+
+def has_runtime_error():
+    return _errors["runtime_errors"]
+
+def has_any_error():
+    return any(_errors.values())
+
+def update_error(runtime: bool, other_error: bool):
+    _errors["errors"] = other_error
+    _errors["runtime_errors"] = runtime
