@@ -14,3 +14,16 @@ class Clock(Callable):
     
     def __repr__(self):
         return "<native function>"
+
+
+class Input(Callable):
+    @property
+    def arity(self):
+        return 1
+    
+    def call(self, interpreter, arguments: t.List[t.Any]):
+        return input(arguments[0])
+
+    def __repr__(self):
+        return "<native function>"
+    

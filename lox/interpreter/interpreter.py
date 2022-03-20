@@ -1,4 +1,5 @@
 import typing as t
+import types
 
 from ..lexer.token_type import TokenType
 from ..lexer.token import Token
@@ -8,8 +9,18 @@ from ..errors import RuntimeException, Return
 from ..handle_errors import runtime_error
 from .environment import Environment
 from .callable import Callable, Function
-from .natives import Clock
+import lox.interpreter.natives as natives
+from lox.interpreter.natives import *
 from .lox_class import Class, Instance
+
+
+def classesinmodule(module):
+    md = module.__dict__
+    return [
+        md[c] for c in md if (
+            isinstance(md[c], type) and md[c].__module__ == module.__name__
+        )
+    ]
 
 
 class Interpreter(BaseVisitor, StmtVisitor):
@@ -17,7 +28,9 @@ class Interpreter(BaseVisitor, StmtVisitor):
         self.globals = Environment()
         self._locals = {}
         self._environment = self.globals
-        self.globals.define("clock", Clock())
+        native_function_classes = classesinmodule(natives)
+        for cls in native_function_classes:
+            self.globals.define(cls.__name__.lower(), cls())
 
     def interpret(self, statements: t.List["Stmt"]):
         try:
