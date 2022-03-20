@@ -16,7 +16,7 @@ def define_ast(output_dir: str, base_name: str, base_name_2: str, types: t.List[
         f.write("from abc import ABC, abstractmethod\n")
         f.write("import typing as t\n\n")
         f.write("from ..lexer.token import Token\n")
-        if base_name == "StmtVisitor": f.write("from .expr import Expr\n\n")
+        if base_name == "StmtVisitor": f.write("from .expr import *\n\n")
         else: f.write("\n")
         f.write(f"class {base_name}(ABC):\n")
 
@@ -60,14 +60,19 @@ define_ast(output_dir, "BaseVisitor", "Expr",
     ["Assign_expr | name: \"Token\", value: \"Expr\"",
     "Binary_expr | left: \"Expr\", operator: \"Token\", right: \"Expr\"",
     "Call_expr | callee: \"Expr\", paren: \"Token\", arguments: t.List[\"Expr\"]",
+    "Get_expr | object: \"Expr\", name: \"Token\"",
     "Grouping_expr | expression: \"Expr\"",
     "Literal_expr | value: t.Any",
     "Logical_expr | left: \"Expr\", operator: \"Token\", right: \"Expr\"",
+    "Set_expr | object: \"Expr\", name: \"Token\", value: \"Expr\"",
+    "Super_expr | keyword: \"Token\", method: \"Token\"",
+    "This_expr | keyword: \"Token\"",
     "Unary_expr | operator: \"Token\", right: \"Expr\"",
     "Variable_expr | name: \"Token\""])
 
 define_ast(output_dir, "StmtVisitor", "Stmt",
     ["Block_stmt | statements: t.List[\"Stmt\"]",
+    "Class_stmt | name: \"Token\", superclass: \"Variable_expr\", methods: t.List[\"Function_stmt\"]",
     "Expression_stmt | expression: \"Expr\"",
     "Function_stmt | name: \"Token\", params: t.List[\"Token\"], body: t.List[\"Stmt\"]",
     "If_stmt | condition: \"Expr\", then_branch: \"Stmt\", else_branch: \"Stmt\"",

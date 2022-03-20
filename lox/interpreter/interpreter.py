@@ -9,6 +9,7 @@ from ..handle_errors import runtime_error
 from .environment import Environment
 from .callable import Callable, Function
 from .natives import Clock
+from .lox_class import Class, Instance
 
 
 class Interpreter(BaseVisitor, StmtVisitor):
@@ -31,6 +32,35 @@ class Interpreter(BaseVisitor, StmtVisitor):
     def visit_block_stmt(self, stmt: "Block_stmt"):
         self._execute_block(stmt.statements, Environment(self._environment))
         return None
+    
+    def visit_class_stmt(self, stmt: "Class_stmt"):
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self._evaluate(stmt.superclass)
+            if not isinstance(superclass, Class):
+                raise RuntimeException(stmt.superclass.name, "Superclass must be a class.")
+
+        self._environment.define(stmt.name.lexeme, None)
+
+        if stmt.superclass is not None:
+            environment = Environment(self._environment)
+            self._environment.define("super", superclass)
+
+        methods = {}
+        for method in stmt.methods:
+            function = Function(method, self._environment, method.name.lexeme == "init")
+            methods[method.name.lexeme] = function
+
+        lox_class = Class(stmt.name.lexeme, superclass, methods)
+
+        if superclass is not None:
+            self._environment = environment._enclosing
+
+        self._environment.assign(stmt.name, lox_class)
+        return None
+    
+    def visit_this_expr(self, expr: "This_expr"):
+        return self._look_up_variable(expr.keyword, expr)
     
     def _execute_block(self, statements: t.List["Stmt"], environment: "Environment"):
         previous = self._environment
@@ -79,7 +109,7 @@ class Interpreter(BaseVisitor, StmtVisitor):
         value = self._evaluate(stmt.expression)
     
     def visit_function_stmt(self, stmt: "Function_stmt"):
-        function = Function(stmt, self._environment)
+        function = Function(stmt, self._environment, False)
         self._environment.define(stmt.name.lexeme, function)
     
     def visit_if_stmt(self, stmt: "If_stmt"):
@@ -112,6 +142,25 @@ class Interpreter(BaseVisitor, StmtVisitor):
             if not self._is_truthy(left): return left
         
         return self._evaluate(expr.right)
+    
+    def visit_set_expr(self, expr: "Set_expr"):
+        object_ = self._evaluate(expr.object)
+
+        if not isinstance(object_, Instance):
+            raise RuntimeException(expr.name, "Only instances have fields.")
+        
+        value = self._evaluate(expr.value)
+        object_.set(expr.name, value)
+        return value
+    
+    def visit_super_expr(self, expr: "Super_expr"):
+        distance = self._locals.get(expr)
+        superclass = self._environment.get_at(distance, "super")
+        obj = self._environment.get_at(distance - 1, "this")
+        method = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise RuntimeException(expr.method, f"Undefined property '{expr.method.lexeme}'.")
+        return method.bind(obj)
     
     def visit_grouping_expr(self, expr: "Grouping_expr"):
         return self._evaluate(expr.expression)
@@ -190,6 +239,12 @@ class Interpreter(BaseVisitor, StmtVisitor):
             raise RuntimeException(expr.paren, f"Expected {func.arity} arguments, but got {len(arguments)}.")
 
         return func.call(self, arguments)
+
+    def visit_get_expr(self, expr: "Get_expr"):
+        object_ = self._evaluate(expr.object)
+        if isinstance(object_, Instance):
+            return object_.get(expr.name)
+        raise RuntimeException(expr.name, "Only instances can have properties.")
     
     def _evaluate(self, expr: "Expr"):
         return expr.accept(self)
@@ -214,6 +269,8 @@ class Interpreter(BaseVisitor, StmtVisitor):
     
     def _stringify(self, value: t.Any):
         if value is None: return "nil"
+        elif isinstance(value, bool):
+            return str(value).lower()
         elif isinstance(value, float):
             text = str(value)
             if text.endswith(".0"):

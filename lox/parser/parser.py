@@ -8,9 +8,8 @@ from .stmt import *
 
 
 class Parser:
-    def __init__(self, tokens: t.List[Token], source: str):
+    def __init__(self, tokens: t.List[Token]):
         self._tokens = tokens
-        self._source = source
         self._current = 0
     
     def parse(self):
@@ -21,12 +20,30 @@ class Parser:
     
     def _declaration(self):
         try:
-            if self._match(TokenType.FUNCTION): return self._function("function")
+            if self._match(TokenType.CLASS): return self._class_declaration()
+            elif self._match(TokenType.FUNCTION): return self._function("function")
             elif self._match(TokenType.VAR): return self._var_declaration()
             return self._statement()
         except ParseError as e:
             self._synchronize()
             return None
+        
+    def _class_declaration(self):
+        name = self._consume(TokenType.IDENTIFIER, "Expect class name.")
+
+        superclass = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
+            superclass = Variable_expr(self._previous())
+
+        self._consume(TokenType.LEFT_PAREN, "Expect '{' before class body.")
+
+        methods = []
+        while not self._check(TokenType.RIGHT_PAREN) and not self._is_at_end():
+            methods.append(self._function("method"))
+        
+        self._consume(TokenType.RIGHT_PAREN, "Expect '}' after class body.")
+        return Class_stmt(name, superclass, methods)
         
     def _function(self, kind: str):
         name = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
@@ -170,7 +187,10 @@ class Parser:
                 name = expr.name
                 return Assign_expr(name, value)
             
-            self._error(equals, "Invalid assignment target.", 0)
+            elif isinstance(expr, Get_expr):
+                return Set_expr(expr.object, expr.name, value)
+            
+            self._error(equals, "Invalid assignment target.")
 
         return expr
     
@@ -246,8 +266,11 @@ class Parser:
         expr = self._primary()
 
         while True:
-            if (self._match(TokenType.LEFT_BRACE)):
+            if self._match(TokenType.LEFT_BRACE):
                 expr = self._finish_call(expr)
+            elif self._match(TokenType.DOT):
+                name = self._consume(TokenType.IDENTIFIER, "Expect propert name after '.'.")
+                expr = Get_expr(expr, name)
             else:
                 break
         
@@ -269,6 +292,14 @@ class Parser:
         if self._match(TokenType.FALSE): return Literal_expr(False)
         if self._match(TokenType.TRUE): return Literal_expr(True)
         if self._match(TokenType.NIL): return Literal_expr(None)
+
+        if self._match(TokenType.SUPER):
+            keyword = self._previous()
+            self._consume(TokenType.DOT, "Expect '.' after 'super'.")
+            method = self._consume(TokenType.IDENTIFIER, "Expect superclass method name.")
+            return Super_expr(keyword, method)
+
+        if self._match(TokenType.THIS): return This_expr(self._previous())
 
         if self._match(TokenType.NUMBER, TokenType.STRING):
             return Literal_expr(self._previous().literal)

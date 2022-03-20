@@ -15,9 +15,15 @@ class Callable(ABC):
         pass
 
 class Function(Callable):
-    def __init__(self, declaration: Function_stmt, closure: "Environment"):
+    def __init__(self, declaration: Function_stmt, closure: "Environment", is_initializer: bool):
         self.declaration = declaration
         self.closure = closure
+        self._is_initializer = is_initializer
+    
+    def bind(self, instance):
+        environment = Environment(self.closure)
+        environment.define("this", instance)
+        return Function(self.declaration, environment, self._is_initializer)
     
     def call(self, interpreter, arguments: t.List[t.Any]):
         environment = Environment(self.closure)
@@ -26,7 +32,11 @@ class Function(Callable):
         try:
             interpreter._execute_block(self.declaration.body, environment)
         except Return as e:
+            if self._is_initializer:
+                return self.closure.get(0, "this")
             return e.value
+        if self._is_initializer:
+            return self.closure.get_at(0, "this")
         return None
     
     @property

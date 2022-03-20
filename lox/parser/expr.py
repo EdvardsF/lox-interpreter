@@ -17,6 +17,10 @@ class BaseVisitor(ABC):
         pass
 
     @abstractmethod
+    def visit_get_expr(self, get_expr: "Get_expr"):
+        pass
+
+    @abstractmethod
     def visit_grouping_expr(self, grouping_expr: "Grouping_expr"):
         pass
 
@@ -26,6 +30,18 @@ class BaseVisitor(ABC):
 
     @abstractmethod
     def visit_logical_expr(self, logical_expr: "Logical_expr"):
+        pass
+
+    @abstractmethod
+    def visit_set_expr(self, set_expr: "Set_expr"):
+        pass
+
+    @abstractmethod
+    def visit_super_expr(self, super_expr: "Super_expr"):
+        pass
+
+    @abstractmethod
+    def visit_this_expr(self, this_expr: "This_expr"):
         pass
 
     @abstractmethod
@@ -68,6 +84,14 @@ class Call_expr(Expr):
    def accept(self, visitor: "BaseVisitor"):
        return visitor.visit_call_expr(self)
 
+class Get_expr(Expr):
+   def __init__(self, object: "Expr", name: "Token"):
+       self.object = object
+       self.name = name
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_get_expr(self)
+
 class Grouping_expr(Expr):
    def __init__(self, expression: "Expr"):
        self.expression = expression
@@ -90,6 +114,30 @@ class Logical_expr(Expr):
 
    def accept(self, visitor: "BaseVisitor"):
        return visitor.visit_logical_expr(self)
+
+class Set_expr(Expr):
+   def __init__(self, object: "Expr", name: "Token", value: "Expr"):
+       self.object = object
+       self.name = name
+       self.value = value
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_set_expr(self)
+
+class Super_expr(Expr):
+   def __init__(self, keyword: "Token", method: "Token"):
+       self.keyword = keyword
+       self.method = method
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_super_expr(self)
+
+class This_expr(Expr):
+   def __init__(self, keyword: "Token"):
+       self.keyword = keyword
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_this_expr(self)
 
 class Unary_expr(Expr):
    def __init__(self, operator: "Token", right: "Expr"):

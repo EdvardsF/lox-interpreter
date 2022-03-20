@@ -1,11 +1,14 @@
-fun makeCounter() {
-    var i = 0;
-    fun count() {
-        i = i + 1;
-        print i;
+class Doughnut {
+    cook() {
+        print "Fry until golden brown.";
     }
-    return count;
 }
-var counter = makeCounter();
-counter(); // "1".
-counter(); // "2".
+
+class BostonCream < Doughnut {
+    cook() {
+        super.cook();
+        print "Pipe full of custard and coat with chocolate.";
+    }
+}
+super.asd();
+BostonCream().cook();

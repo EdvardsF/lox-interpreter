@@ -25,9 +25,6 @@ class Environment:
         return environment
 
     def assign(self, name: "Token", value: t.Any):
-        print(value)
-        print(name)
-        print(self._variables)
         if name.lexeme in self._variables:
             self._variables[name.lexeme] = value
             return

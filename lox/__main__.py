@@ -15,8 +15,7 @@ def run(code):
     tokens = scanner.scan_tokens()
     if has_error(): exit(65)
 
-    # TODO remove code parameter
-    parser = Parser(tokens, code)
+    parser = Parser(tokens)
     statements = parser.parse()
     if has_error(): exit(65)
 

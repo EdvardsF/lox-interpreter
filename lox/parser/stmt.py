@@ -2,11 +2,15 @@ from abc import ABC, abstractmethod
 import typing as t
 
 from ..lexer.token import Token
-from .expr import Expr
+from .expr import *
 
 class StmtVisitor(ABC):
     @abstractmethod
     def visit_block_stmt(self, block_stmt: "Block_stmt"):
+        pass
+
+    @abstractmethod
+    def visit_class_stmt(self, class_stmt: "Class_stmt"):
         pass
 
     @abstractmethod
@@ -49,6 +53,15 @@ class Block_stmt(Stmt):
 
    def accept(self, visitor: "StmtVisitor"):
        return visitor.visit_block_stmt(self)
+
+class Class_stmt(Stmt):
+   def __init__(self, name: "Token", superclass: "Variable_expr", methods: t.List["Function_stmt"]):
+       self.name = name
+       self.superclass = superclass
+       self.methods = methods
+
+   def accept(self, visitor: "StmtVisitor"):
+       return visitor.visit_class_stmt(self)
 
 class Expression_stmt(Stmt):
    def __init__(self, expression: "Expr"):
