@@ -14,7 +14,6 @@ true;false;  // booleans
 12;12.24;  // numbers
 nil; // None
 ```
-I would be adding lists, sets and dicts in the future.
 
 ## Arithmetic
 ```js
