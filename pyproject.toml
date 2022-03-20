@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pylox"
+name = "lox"
 version = "0.1.0"
 description = ""
 authors = ["EdvardsF"]
@@ -14,4 +14,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-lox = 'lox.__main__:main'
+pylox = 'lox.__main__:main'
