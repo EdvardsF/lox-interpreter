@@ -17,7 +17,7 @@ primary → NUMBER | STRING | IDENTIFIER
 
 program → declaration* EOF ;
 declaration → classDecl
-        funDecl
+        | funDecl
         | varDecl
         | statement;
 classDecl → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}"

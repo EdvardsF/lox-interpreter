@@ -36,27 +36,27 @@ class Parser:
             self._consume(TokenType.IDENTIFIER, "Expect superclass name.")
             superclass = Variable_expr(self._previous())
 
-        self._consume(TokenType.LEFT_PAREN, "Expect '{' before class body.")
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         methods = []
-        while not self._check(TokenType.RIGHT_PAREN) and not self._is_at_end():
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
             methods.append(self._function("method"))
         
-        self._consume(TokenType.RIGHT_PAREN, "Expect '}' after class body.")
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
         return Class_stmt(name, superclass, methods)
         
     def _function(self, kind: str):
         name = self._consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
         parameters = []
-        self._consume(TokenType.LEFT_BRACE, f"Expect '(' after {kind} name.")
-        if not self._check(TokenType.RIGHT_BRACE):
+        self._consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
+        if not self._check(TokenType.RIGHT_PAREN):
             parameters.append(self._consume(TokenType.IDENTIFIER, "Expect parameter name."))
             while self._match(TokenType.COMMA):
                 if len(parameters) >= 255:
                     self._error(self._peek(), "Can't have more than 255 arguments.")
                 parameters.append(self._consume(TokenType.IDENTIFIER, "Expect parameter name."))
-        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after parameters.")
-        self._consume(TokenType.LEFT_PAREN, f"Expect '{{' before {kind} body.")
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+        self._consume(TokenType.LEFT_BRACE, f"Expect '{{' before {kind} body.")
         # self._block assumes '{' is already consumed
         statements = self._block()
         return Function_stmt(name, parameters, statements)
@@ -81,13 +81,13 @@ class Parser:
             return self._return_statement()
         elif self._match(TokenType.WHILE):
             return self._while_statement()
-        elif self._match(TokenType.LEFT_PAREN):
+        elif self._match(TokenType.LEFT_BRACE):
             return Block_stmt(self._block())
         else:
             return self._expression_statement()
     
     def _for_statement(self):
-        self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'for'.")
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
 
         initializer = None
         if self._match(TokenType.SEMICOLON):
@@ -103,9 +103,9 @@ class Parser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
 
         increment = None
-        if not self._check(TokenType.RIGHT_BRACE):
+        if not self._check(TokenType.RIGHT_PAREN):
             increment = self._expression()
-        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after for clauses.")
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
 
         body = self._statement()
 
@@ -126,9 +126,9 @@ class Parser:
         return body
     
     def _if_statement(self):
-        self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'if'.")
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
         condition = self._expression()
-        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after if condition.")
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
 
         then_branch = self._statement()
         else_branch = None
@@ -152,9 +152,9 @@ class Parser:
         return Return_stmt(keyword, value)
     
     def _while_statement(self):
-        self._consume(TokenType.LEFT_BRACE, "Expect '(' after 'while'.")
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
         condition = self._expression()
-        self._consume(TokenType.RIGHT_BRACE, "Expect ')' after condition.")
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
         body = self._statement()
 
         return While_stmt(condition, body)
@@ -162,10 +162,10 @@ class Parser:
     def _block(self):
         statements = []
 
-        while not self._check(TokenType.RIGHT_PAREN) and not self._is_at_end():
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
             statements.append(self._declaration())
         
-        self._consume(TokenType.RIGHT_PAREN, "Expect '}' after block.")
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
         return statements
     
     def _expression_statement(self):
@@ -266,7 +266,7 @@ class Parser:
         expr = self._primary()
 
         while True:
-            if self._match(TokenType.LEFT_BRACE):
+            if self._match(TokenType.LEFT_PAREN):
                 expr = self._finish_call(expr)
             elif self._match(TokenType.DOT):
                 name = self._consume(TokenType.IDENTIFIER, "Expect propert name after '.'.")
@@ -278,13 +278,13 @@ class Parser:
     
     def _finish_call(self, callee: "Expr"):
         arguments = []
-        if not self._check(TokenType.RIGHT_BRACE):
+        if not self._check(TokenType.RIGHT_PAREN):
             arguments.append(self._expression())
             while self._match(TokenType.COMMA):
                 if len(arguments) >= 255:
                     self._error(self._peek(), "Can't have more than 255 arguments.")
                 arguments.append(self._expression())
-        paren = self._consume(TokenType.RIGHT_BRACE, "Expected ')' after arguments.")
+        paren = self._consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments.")
 
         return Call_expr(callee, paren, arguments)
     
@@ -307,9 +307,9 @@ class Parser:
         if self._match(TokenType.IDENTIFIER):
             return Variable_expr(self._previous())
         
-        if self._match(TokenType.LEFT_BRACE):
+        if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()
-            self._consume(TokenType.RIGHT_BRACE, "Expect ')' after expression.")
+            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping_expr(expr)
         
         raise self._error(self._peek(), "Expect expression.")

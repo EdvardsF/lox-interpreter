@@ -24,10 +24,12 @@ class Scanner:
         char = self._advance()
         add = self._add_token
         single_char_tokens = [
-            TokenType.LEFT_PAREN,
-            TokenType.RIGHT_PAREN,
             TokenType.LEFT_BRACE,
             TokenType.RIGHT_BRACE,
+            TokenType.LEFT_PAREN,
+            TokenType.RIGHT_PAREN,
+            TokenType.LEFT_BRACKET,
+            TokenType.RIGHT_BRACKET,
             TokenType.COMMA,
             TokenType.DOT,
             TokenType.MINUS,
