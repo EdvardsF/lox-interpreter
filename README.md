@@ -1,5 +1,5 @@
 # lox-interpreter
-Interpreter for lox language from the book (Crafting interpreters)[http://craftinginterpreters.com/] with some of my changes and additions.
+Interpreter for lox language from the book [Crafting interpreters](http://craftinginterpreters.com/) with some of my changes and additions.
 
 ## Installation
 ### Install with pip
@@ -27,7 +27,6 @@ $ pylox path/to/source_code.lox     # Executes the file
     $ python run.py                           # Starts a loxscript repl
     $ python run.py path/to/source_code.ls    # Executes the file
     ```
-## Features
 # Language Features
 
 ## Printing
