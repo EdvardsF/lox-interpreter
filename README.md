@@ -126,6 +126,15 @@ fun add(a,b) {
 print add(1, 2);
 ```
 
+## Some of native functions
+```js
+clock(); // current time
+input("Enter a number: "); // asks for user's input
+type("string"); // get's the type of a variable
+number("12"); // converts string to number
+string(12); // converts number to string
+```
+
 ## Closures
 Functions are first-class citizens in Lox.
 ```js
