@@ -70,3 +70,15 @@ class Type(Callable):
 
     def __repr__(self):
         return "<native function>" 
+
+
+class Len(Callable):
+    @property
+    def arity(self):
+        return 1
+    
+    def call(self, interpreter, arguments: t.List[t.Any]):
+        return len(arguments[0])
+
+    def __repr__(self):
+        return "<native function>"

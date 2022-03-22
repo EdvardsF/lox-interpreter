@@ -130,9 +130,10 @@ print add(1, 2);
 ```js
 clock(); // current time
 input("Enter a number: "); // asks for user's input
-type("string"); // get's the type of a variable
+type("string"); // gets the type of a variable
 number("12"); // converts string to number
 string(12); // converts number to string
+len("123"); // gets the length of a list or string
 ```
 
 ## Closures
