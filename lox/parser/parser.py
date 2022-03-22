@@ -64,11 +64,29 @@ class Parser:
     def _var_declaration(self):
         name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
 
-        initializer = None
+        initializer = None # If variable declaration
+        values = [] # If list declaration
+        is_list_declartion = False
+
         if self._match(TokenType.EQUAL):
-            initializer = self._expression()
-        self._consume(TokenType.SEMICOLON, "Expect ';' after a variable decleration.")
+            if self._match(TokenType.LEFT_BRACKET):
+                is_list_declartion = True
+                values = self._list()
+            else:
+                initializer = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after a variable declaration.")
+        if is_list_declartion:
+            return List_stmt(name, values)
         return Var_stmt(name, initializer)
+    
+    def _list(self):
+        values = []
+        if not self._match(TokenType.RIGHT_BRACKET):
+            values.append(self._expression())
+            while self._match(TokenType.COMMA):
+                values.append(self._expression())
+            self._consume(TokenType.RIGHT_BRACKET, "Expect ']' after a list declaration.")
+        return values
     
     def _statement(self):
         if self._match(TokenType.FOR):
@@ -181,11 +199,16 @@ class Parser:
 
         if self._match(TokenType.EQUAL):
             equals = self._previous()
-            value = self._assignment()
 
+            if isinstance(expr, List_expr):
+                self._consume(TokenType.LEFT_BRACKET, "Expect '[' in list assignment.")
+                values = self._list()
+                return Assign_list_expr(expr.name, values)
+
+            value = self._assignment()
             if isinstance(expr, Variable_expr):
                 name = expr.name
-                return Assign_expr(name, value)
+                return Assign_var_expr(name, value)
             
             elif isinstance(expr, Get_expr):
                 return Set_expr(expr.object, expr.name, value)
@@ -271,6 +294,11 @@ class Parser:
             elif self._match(TokenType.DOT):
                 name = self._consume(TokenType.IDENTIFIER, "Expect propert name after '.'.")
                 expr = Get_expr(expr, name)
+            elif self._match(TokenType.LEFT_BRACKET):
+                index = self._expression()
+                paren = self._previous()
+                expr = List_get_expr(expr, paren, index)
+                self._consume(TokenType.RIGHT_BRACKET, "Expect ']' after list index.")
             else:
                 break
         
@@ -305,6 +333,8 @@ class Parser:
             return Literal_expr(self._previous().literal)
         
         if self._match(TokenType.IDENTIFIER):
+            if self._peek_next().type == TokenType.LEFT_BRACKET:
+                return List_expr(self._previous())
             return Variable_expr(self._previous())
         
         if self._match(TokenType.LEFT_PAREN):
@@ -342,6 +372,9 @@ class Parser:
     
     def _peek(self):
         return self._tokens[self._current]
+    
+    def _peek_next(self):
+        return self._tokens[self._current + 1]
     
     def _previous(self):
         return self._tokens[self._current - 1]

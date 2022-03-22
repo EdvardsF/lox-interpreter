@@ -1,5 +1,4 @@
 import typing as t
-import types
 
 from ..lexer.token_type import TokenType
 from ..lexer.token import Token
@@ -86,7 +85,7 @@ class Interpreter(BaseVisitor, StmtVisitor):
         finally:
             self._environment = previous
     
-    def visit_assign_expr(self, expr: "Assign_expr"):
+    def visit_assign_var_expr(self, expr: "Assign_var_expr"):
         value = self._evaluate(expr.value)
         if expr in self._locals.keys():
             self._environment.assign_at(self._locals[expr], expr.name, value)
@@ -108,6 +107,9 @@ class Interpreter(BaseVisitor, StmtVisitor):
     
     def visit_variable_expr(self, expr: "Expr"):
         return self._look_up_variable(expr.name, expr)
+    
+    def visit_list_expr(self, expr: "List_expr"):
+         return self._look_up_variable(expr.name, expr)
     
     def _look_up_variable(self, name: Token, expr: Expr):
         if expr in self._locals.keys():
@@ -259,6 +261,37 @@ class Interpreter(BaseVisitor, StmtVisitor):
             return object_.get(expr.name)
         raise RuntimeException(expr.name, "Only instances can have properties.")
     
+    def visit_list_get_expr(self, expr: "List_get_expr"):
+        index = self._evaluate(expr.index)
+        list_obj = self._evaluate(expr.name)
+
+        if int(index) != index:
+            raise RuntimeException(expr.paren, "List index must be an integer.")
+
+        index = int(index)
+
+        if not 0 <= index < len(list_obj):
+            raise RuntimeException(expr.paren, "List index out of range.")
+        
+        return list_obj[index]
+    
+    def visit_assign_list_expr(self, expr: "Assign_list_expr"):
+        values = []
+        for val in expr.values:
+            values.append(self._evaluate(val))
+        if expr in self._locals.keys():
+            self._environment.assign_at(self._locals[expr], expr.name, values)
+        else:
+            self.globals.assign(expr.name, values)
+        return values
+
+    def visit_list_stmt(self, stmt: "List_stmt"):
+        values = []
+        for val in stmt.values:
+            values.append(self._evaluate(val))
+        
+        self._environment.define(stmt.name.lexeme, values)
+    
     def _evaluate(self, expr: "Expr"):
         return expr.accept(self)
     
@@ -285,10 +318,9 @@ class Interpreter(BaseVisitor, StmtVisitor):
         elif isinstance(value, bool):
             return str(value).lower()
         elif isinstance(value, float):
-            text = str(value)
-            if text.endswith(".0"):
-                text = text[:-2]
-            return text
+            return str(value).replace(".0", "")
+        elif isinstance(value, list):
+            return str(value).replace(".0", "")
         else:
             return str(value)
 

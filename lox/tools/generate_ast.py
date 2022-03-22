@@ -57,7 +57,8 @@ def _define_visitor(file, base_name, types):
     file.write("\n")
 
 define_ast(output_dir, "BaseVisitor", "Expr",
-    ["Assign_expr | name: \"Token\", value: \"Expr\"",
+    ["Assign_var_expr | name: \"Token\", value: \"Expr\"",
+    "Assign_list_expr | name: \"Token\", values: t.List[\"Expr\"]",
     "Binary_expr | left: \"Expr\", operator: \"Token\", right: \"Expr\"",
     "Call_expr | callee: \"Expr\", paren: \"Token\", arguments: t.List[\"Expr\"]",
     "Get_expr | object: \"Expr\", name: \"Token\"",
@@ -68,7 +69,9 @@ define_ast(output_dir, "BaseVisitor", "Expr",
     "Super_expr | keyword: \"Token\", method: \"Token\"",
     "This_expr | keyword: \"Token\"",
     "Unary_expr | operator: \"Token\", right: \"Expr\"",
-    "Variable_expr | name: \"Token\""])
+    "Variable_expr | name: \"Token\"",
+    "List_expr | name: \"Token\"",
+    "List_get_expr | name: \"Expr\", paren: \"Token\", index: \"Expr\""])
 
 define_ast(output_dir, "StmtVisitor", "Stmt",
     ["Block_stmt | statements: t.List[\"Stmt\"]",
@@ -79,4 +82,5 @@ define_ast(output_dir, "StmtVisitor", "Stmt",
     "Print_stmt | expression: \"Expr\"",
     "Return_stmt | keyword: \"Token\", value: \"Expr\"",
     "Var_stmt | name: \"Token\", initializer: \"Expr\"",
+    "List_stmt | name: \"Token\", values: t.List[\"Expr\"]",
     "While_stmt | condition: \"Expr\", body: \"Stmt\""])

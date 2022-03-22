@@ -38,6 +38,10 @@ class StmtVisitor(ABC):
         pass
 
     @abstractmethod
+    def visit_list_stmt(self, list_stmt: "List_stmt"):
+        pass
+
+    @abstractmethod
     def visit_while_stmt(self, while_stmt: "While_stmt"):
         pass
 
@@ -110,6 +114,14 @@ class Var_stmt(Stmt):
 
    def accept(self, visitor: "StmtVisitor"):
        return visitor.visit_var_stmt(self)
+
+class List_stmt(Stmt):
+   def __init__(self, name: "Token", values: t.List["Expr"]):
+       self.name = name
+       self.values = values
+
+   def accept(self, visitor: "StmtVisitor"):
+       return visitor.visit_list_stmt(self)
 
 class While_stmt(Stmt):
    def __init__(self, condition: "Expr", body: "Stmt"):

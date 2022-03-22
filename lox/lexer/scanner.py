@@ -153,7 +153,7 @@ class Scanner:
         else: return self._source[self._current]
     
     def _peek_next(self):
-        if self._current + 1 >= self._source: return "\0"
+        if self._current + 1 >= len(self._source): return "\0"
         else: return self._source[self._current + 1]
     
     def _is_at_end(self):

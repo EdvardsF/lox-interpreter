@@ -5,7 +5,11 @@ from ..lexer.token import Token
 
 class BaseVisitor(ABC):
     @abstractmethod
-    def visit_assign_expr(self, assign_expr: "Assign_expr"):
+    def visit_assign_var_expr(self, assign_var_expr: "Assign_var_expr"):
+        pass
+
+    @abstractmethod
+    def visit_assign_list_expr(self, assign_list_expr: "Assign_list_expr"):
         pass
 
     @abstractmethod
@@ -52,19 +56,35 @@ class BaseVisitor(ABC):
     def visit_variable_expr(self, variable_expr: "Variable_expr"):
         pass
 
+    @abstractmethod
+    def visit_list_expr(self, list_expr: "List_expr"):
+        pass
+
+    @abstractmethod
+    def visit_list_get_expr(self, list_get_expr: "List_get_expr"):
+        pass
+
 
 class Expr(ABC):
    @abstractmethod
    def accept(self, visitor: "BaseVisitor"):
         pass
 
-class Assign_expr(Expr):
+class Assign_var_expr(Expr):
    def __init__(self, name: "Token", value: "Expr"):
        self.name = name
        self.value = value
 
    def accept(self, visitor: "BaseVisitor"):
-       return visitor.visit_assign_expr(self)
+       return visitor.visit_assign_var_expr(self)
+
+class Assign_list_expr(Expr):
+   def __init__(self, name: "Token", values: t.List["Expr"]):
+       self.name = name
+       self.values = values
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_assign_list_expr(self)
 
 class Binary_expr(Expr):
    def __init__(self, left: "Expr", operator: "Token", right: "Expr"):
@@ -153,4 +173,20 @@ class Variable_expr(Expr):
 
    def accept(self, visitor: "BaseVisitor"):
        return visitor.visit_variable_expr(self)
+
+class List_expr(Expr):
+   def __init__(self, name: "Token"):
+       self.name = name
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_list_expr(self)
+
+class List_get_expr(Expr):
+   def __init__(self, name: "Expr", paren: "Token", index: "Expr"):
+       self.name = name
+       self.paren = paren
+       self.index = index
+
+   def accept(self, visitor: "BaseVisitor"):
+       return visitor.visit_list_get_expr(self)
 

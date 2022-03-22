@@ -35,10 +35,22 @@ class Resolver(BaseVisitor, StmtVisitor):
         self._define(stmt.name)
         return None
     
-    def visit_assign_expr(self, expr: "Assign_expr"):
+    def visit_assign_var_expr(self, expr: "Assign_var_expr"):
         self.resolve(expr.value)
         self._resolve_local(expr, expr.name)
         return None
+    
+    def visit_assign_list_expr(self, expr: "Assign_list_expr"):
+        for val in expr.values:
+            self.resolve(val)
+        self._resolve_local(expr, expr.name)
+        return None
+
+    def visit_list_stmt(self, stmt: "List_stmt"):
+        self._declare(stmt.name)
+        for val in stmt.values:
+            self.resolve(val)
+        self._define(stmt.name)
     
     def visit_variable_expr(self, expr: Variable_expr):
         if self._scopes and self._scopes[-1].get(expr.name.lexeme) is False:
@@ -46,6 +58,9 @@ class Resolver(BaseVisitor, StmtVisitor):
         
         self._resolve_local(expr, expr.name)
         return None
+    
+    def visit_list_expr(self, expr: "List_expr"):
+        return self.visit_variable_expr(expr)
     
     def _declare(self, name: "Token"):
         if not self._scopes: return
@@ -167,6 +182,11 @@ class Resolver(BaseVisitor, StmtVisitor):
     
     def visit_get_expr(self, expr: "Get_expr"):
         self.resolve(expr.object)
+        return None
+    
+    def visit_list_get_expr(self, expr: "List_get_expr"):
+        self.resolve(expr.index)
+        self.resolve(expr.name)
         return None
     
     def visit_set_expr(self, expr: "Set_expr"):
